@@ -1,4 +1,4 @@
-
+JProperties = @jimport java.util.Properties
 
 function set_property(jprops::JProperties, key::AbstractString, value::AbstractString)
     jcall(jprops, "setProperty", JObject, (JString, JString), key, value)

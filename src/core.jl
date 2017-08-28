@@ -1,46 +1,9 @@
 using JavaCall
+
 include("init.jl")
-
-println("core: 4")
-
-
-
-
-
-
-println("core: 11")
-
-JProperties = @jimport java.util.Properties
-JStanfordCoreNLP = @jimport edu.stanford.nlp.pipeline.StanfordCoreNLP
-JAnnotation = @jimport edu.stanford.nlp.pipeline.Annotation
-
-JArrayList = @jimport java.util.ArrayList
-JTree = @jimport edu.stanford.nlp.trees.Tree
-JSemanticGraph = @jimport edu.stanford.nlp.semgraph.SemanticGraph
-JCoreLabel = @jimport edu.stanford.nlp.ling.CoreLabel
-JMaxentTagger = @jimport edu.stanford.nlp.tagger.maxent
-
-println("core: 23")
-
-#Java classes from Stanford NLP. Used for interrogating CoreMap and CoreLabel annotation results.
-JSentencesAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$SentencesAnnotation")
-JTokensAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$TokensAnnotation")
-JTextAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$TextAnnotation")
-JPartOfSpeechAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$PartOfSpeechAnnotation")
-JNamedEntityTagAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$NamedEntityTagAnnotation")  #NEW
-JTreeAnnotationClass = classforname("edu.stanford.nlp.trees.TreeCoreAnnotations\$TreeAnnotation")
-JTreeClass = classforname("edu.stanford.nlp.trees.Tree") #TreeAnnotationClass?
-JCollapsedCCProcessedDependenciesAnnotationClass = classforname("edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations\$CollapsedCCProcessedDependenciesAnnotation")
-JCorefChainAnnotationClass = classforname("edu.stanford.nlp.dcoref.CorefCoreAnnotations\$CorefChainAnnotation")
-JMaxentTaggerClass = classforname("edu.stanford.nlp.tagger.maxent.MaxentTagger") #Java.lang.ClassNotFoundException.  No $
-JGrammaticalStructureClass = classforname("edu.stanford.nlp.trees.GrammaticalStructure") #Java.lang.ClassNotFoundException No $
-JDependencyParserClass = classforname("edu.stanford.nlp.parser.nndep.DependencyParser") #Java.lang.ClassNotFoundException No $
-
-println("core: 39")
+include("java.jl")
 include("utils.jl")
-println("core: 41")
 include("pipeline.jl")
-println("core: 43")
 
 function my_test()
     # example from https://stanfordnlp.github.io/CoreNLP/api.html
