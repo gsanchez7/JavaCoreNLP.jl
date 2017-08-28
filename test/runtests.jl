@@ -6,3 +6,4 @@ using Base.Test
 @test 3 == 3
 @test 4 == 44
 @test 5 == 55
+@test 6 == 66
