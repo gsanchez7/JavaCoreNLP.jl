@@ -9,3 +9,4 @@ using Base.Test
 @test 6 == 66
 @test 7 == 77
 @test 8 == 88
+@test 9 == 99
