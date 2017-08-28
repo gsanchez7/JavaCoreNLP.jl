@@ -8,3 +8,4 @@ using Base.Test
 @test 5 == 55
 @test 6 == 66
 @test 7 == 77
+@test 8 == 88
