@@ -28,9 +28,20 @@ the 'lemma' key maps to a lemma JString (the value).
 #String taggedString = tagger.tagTokenizedString("Here 's a tagged string .")
 
 
-#??
+type MaxentTagger
+    jmet::JMaxentTagger
+end
+
+# Path is the location of parameter files for a trained tagger.
+function MaxentTagger(path::AbstractString)
+    println("MaxentTagger: 37")
+    jmet = JMaxentTagger((JString,), path)
+    println("MaxentTagger: 39")
+    return MaxentTagger(jmet)
+end
+
 #Returns a new Sentence that is a copy of the given sentence with all the words tagged with their part-of-speech.
 #https://nlp.stanford.edu/nlp/javadoc/javanlp/index.html?edu/stanford/nlp/ling/CoreAnnotations.TokensAnnotation.html
-function Tagger(met::MaxentTagger, sentence::JAnnotation)
-    return narrow(jcall(met, "tagSentence", JObject, (JAnnotation,), sentence))
-end
+#function Tagger(met::MaxentTagger, sentence::JAnnotation)
+#    return narrow(jcall(met, "tagSentence", JObject, (JAnnotation,), sentence))
+#end

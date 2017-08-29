@@ -5,8 +5,12 @@ JCoreLabel = @jimport edu.stanford.nlp.ling.CoreLabel
 JArrayList = @jimport java.util.ArrayList
 JTree = @jimport edu.stanford.nlp.trees.Tree
 JSemanticGraph = @jimport edu.stanford.nlp.semgraph.SemanticGraph
+JHasWord = @jimport edu.stanford.nlp.ling.HasWord
+JTaggedWord = @jimport edu.stanford.nlp.ling.TaggedWord
+JDependencyParser = @jimport edu.stanford.nlp.parser.nndep.DependencyParser
+JDocumentPreprocessor = @jimport edu.stanford.nlp.process.DocumentPreprocessor
 JMaxentTagger = @jimport edu.stanford.nlp.tagger.maxent.MaxentTagger
-
+JGrammaticalStructure = @jimport edu.stanford.nlp.trees.GrammaticalStructure
 
 #Java classes
 ##Inner

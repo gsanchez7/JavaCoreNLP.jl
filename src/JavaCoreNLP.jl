@@ -4,7 +4,8 @@ export
     Annotation,
     StanfordCoreNLP,
     annotate!,
-    my_test
+    my_test,
+    MaxentTagger
 
 include("core.jl")
 

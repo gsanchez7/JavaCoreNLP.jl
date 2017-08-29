@@ -1,43 +1,18 @@
+#=======================================================================
+Convenience methods related to construction of pipeline::StanfordCoreNLP.
 
-#Annotation
-type Annotation
-    jann::JAnnotation
-end
+Usage: pipeline = Pipeline(annotators::String...)
 
-# TODO: make more meaningful show
-Base.show(io::IO, ann::Annotation) = print(io, "Annotation(...)")
+Example: pipeline = Pipeline("pos", "dcoref")
 
-function Annotation(text::AbstractString)
-    jann = JAnnotation((JString,), text)
-    return Annotation(jann)
-end
+Uses `checkAnnotators` to validate the annotators in the argument of Pipeline,
+i.e., it checks that each annotator is a key in ANNOTATORS.
 
-
-# StanfordCoreNLP
-type StanfordCoreNLP
-    jpipeline::JStanfordCoreNLP
-end
-
-Base.show(io::IO, pipeline::StanfordCoreNLP) = print(io, "StanfordCoreNLP(...)")
-
-function StanfordCoreNLP(props::Dict{String, String})
-    jprops = to_jprops(props)
-    jpipeline = JStanfordCoreNLP((JProperties,), jprops)
-    return StanfordCoreNLP(jpipeline)
-end
-
-
-#MaxentTagger
-type MaxentTagger
-    jmet::JMaxentTagger
-end
-
-# Path is the location of parameter files for a trained tagger.
-function MaxentTagger(path::String)
-    jmet = JMaxentTagger(path)
-    return MaxentTagger(jmet)
-end
-
+Uses `annotatorList` to build a single, comma-separated string of the
+annotators passed to `Pipeline` and their dependencies. For example,
+annotatorList("pos") returns string "pos, ssplit, tokenize". Annotators
+listed in the returned string are unique and ordered.
+=======================================================================#
 
 #Construct a CoreNLP pipeline object suitable for `annotate!` calls.
 function Pipeline(annotators::String...)
@@ -52,7 +27,7 @@ end
 
 
 #Returns true if all arguments are valid annotators, false otherwise.
-include("annotators.jl")
+include("./data/annotators.jl")
 function checkAnnotators(annotators...)
     valid = true
         for a in annotators
@@ -86,7 +61,8 @@ function annotatorList(annotators...)
 end
 
 
-#Annotates doc.jann according to pipeline.
+#Annotates doc.jann according to pipeline. Note, doc is an Annotation
+#whereas doc.jann is a JAnnotation.
 function annotate!(pipeline::StanfordCoreNLP, doc::Annotation)
     jcall(pipeline.jpipeline, "annotate", Void, (JAnnotation,), doc.jann)
 end

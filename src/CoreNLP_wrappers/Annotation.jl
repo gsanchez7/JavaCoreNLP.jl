@@ -1,5 +1,48 @@
 #=============================================================================
-edu.stanford.nlp.pipeline.Annotation methods
+Minimally wraps the edu.stanford.nlp.pipeline.Annotation.class.
+
+Note, the Java constructor Annotation(text) becomes here
+JAnnotation((JString,), text). That's because JAnnotation makes a `JavaCall` call
+whose signature requires the extra argument.  See the `JavaCall` documentation.
+=============================================================================#
+type Annotation
+    jann::JAnnotation
+end
+
+# TODO: make more meaningful show
+Base.show(io::IO, ann::Annotation) = print(io, "Annotation(...)")
+
+function Annotation(text::AbstractString)
+    jann = JAnnotation((JString,), text)
+    return Annotation(jann)
+end
+
+
+
+#=============================================================================
+Minimally wraps the edu.stanford.nlp.pipeline.StanfordCoreNLP.class.
+
+Note, the Java constructor JStanfordCoreNLP(props) becomes here
+JStanfordCoreNLP((JProperties,), jprops). That's because JAnnotation makes a
+`JavaCall` call whose signature requires the extra argument.
+See the `JavaCall` documentation.
+=============================================================================#
+# StanfordCoreNLP
+type StanfordCoreNLP
+    jpipeline::JStanfordCoreNLP
+end
+
+Base.show(io::IO, pipeline::StanfordCoreNLP) = print(io, "StanfordCoreNLP(...)")
+
+function StanfordCoreNLP(props::Dict{String, String})
+    jprops = to_jprops(props)
+    jpipeline = JStanfordCoreNLP((JProperties,), jprops)
+    return StanfordCoreNLP(jpipeline)
+end
+
+
+#=============================================================================
+Convenience methods that wrap edu.stanford.nlp.pipeline.Annotation methods. See--
 https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/pipeline/Annotation.html
 
 A generic call is built as follows--
@@ -13,7 +56,6 @@ For example, in,
    'jcall(sentence, "get", JObject, (JClass,), JTokensAnnotationClass)'
 the 'JTokensAnnotationClass' key maps to an array of tokens (the value).
 =============================================================================#
-
 
 #Returns iterable list of annotated sentences in an Annotation.
 #N. B., accepts an Annotation object with a CoreAnnotation as its field.

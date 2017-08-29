@@ -4,7 +4,10 @@ include("init.jl")
 include("java.jl")
 include("utils.jl")
 include("pipeline.jl")
-include("analysis.jl")
+include("./CoreNLP_wrappers/Annotation.jl")
+include("./CoreNLP_wrappers/CoreLabel.jl")
+include("./CoreNLP_wrappers/Tree.jl")
+include("./CoreNLP_wrappers/MaxentTagger.jl")
 
 function my_test(text::String, annotators::String...)
 #function my_test()
@@ -12,8 +15,8 @@ function my_test(text::String, annotators::String...)
     println("core: 16")
     #doc = Annotation(text)
     println("core: 19")
-    path = "/home/john/.julia/v0.5/JavaCoreNLP/jvm/corenlp-wrapper/target/edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger"
-    met = MaxentTagger(path)
+    #path = "/home/john/.julia/v0.5/JavaCoreNLP/jvm/corenlp-wrapper/target/edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger"
+    #met = MaxentTagger(path)
     #annotate!(pipeline, doc)
     println("core: 21")
 
