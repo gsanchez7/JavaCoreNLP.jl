@@ -3,7 +3,8 @@ module JavaCoreNLP
 export
     Annotation,
     StanfordCoreNLP,
-    annotate!
+    annotate!,
+    my_test
 
 include("core.jl")
 

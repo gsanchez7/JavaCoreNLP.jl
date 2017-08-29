@@ -4,13 +4,32 @@ include("init.jl")
 include("java.jl")
 include("utils.jl")
 include("pipeline.jl")
+include("analysis.jl")
 
-function my_test()
-    # example from https://stanfordnlp.github.io/CoreNLP/api.html
-    pipeline = StanfordCoreNLP(Dict("annotations" =>
-                                    "tokenize, ssplit, pos, lemma, ner, parse, dcoref"))
-    doc = Annotation("The Beatles were an English rock band formed in Liverpool in 1960.")
-    annotate!(pipeline, doc)
+function my_test(text::String, annotators::String...)
+#function my_test()
+    #pipeline = Pipeline(annotators...)
+    println("core: 16")
+    #doc = Annotation(text)
+    println("core: 19")
+    path = "/home/john/.julia/v0.5/JavaCoreNLP/jvm/corenlp-wrapper/target/edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger"
+    met = MaxentTagger(path)
+    #annotate!(pipeline, doc)
+    println("core: 21")
+
+    sentences = Sentences(doc)
+    for sentence in JavaCall.iterator(sentences)
+        tokens = Tokens(sentence)
+        for token in JavaCall.iterator(tokens)
+            lemma = Lemma(token)
+            pos = POS(token)
+            ne = NER(token)
+            str = ToString(token)
+            value = Value(token)
+            word = Word(token)
+            println("lemma= $lemma  pos= $pos  ne= $ne  str= $str  value= $value  word= $word")
+        end
+    end
 end
 
 
