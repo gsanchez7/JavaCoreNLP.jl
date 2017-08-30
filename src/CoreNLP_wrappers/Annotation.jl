@@ -31,6 +31,16 @@ See the `JavaCall` documentation.
 type StanfordCoreNLP
     jpipeline::JStanfordCoreNLP
 end
+#
+
+#To tag a list of sentences and get back a list of tagged sentences:
+#List taggedList = tagger.process(List sentences)
+
+#To tag a String of text and to get back a String with tagged words:
+#String taggedString = tagger.tagString("Here's a tagged string.")
+
+#To tag a string of correctly tokenized, whitespace-separated words and get a string of tagged words back:
+#String taggedString = tagger.tagTokenizedString("Here 's a tagged string .")
 
 Base.show(io::IO, pipeline::StanfordCoreNLP) = print(io, "StanfordCoreNLP(...)")
 

@@ -1,6 +1,8 @@
 #=============================================================================
-edu.stanford.nlp.ling.CoreLabel methods
+Convenience methods related to interrogation of token::JCoreLabel. See--
 https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/ling/CoreLabel.html
+
+Usage example: lemma = Lemma(token)
 
 A generic call is built as follows--
 jcall(A, B, C, D) where--
