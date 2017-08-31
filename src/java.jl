@@ -1,4 +1,6 @@
 #Java types
+JDocument = @jimport edu.stanford.nlp.simple.Document
+JSentence = @jimport edu.stanford.nlp.simple.Sentence
 JStanfordCoreNLP = @jimport edu.stanford.nlp.pipeline.StanfordCoreNLP
 JAnnotation = @jimport edu.stanford.nlp.pipeline.Annotation
 JCoreLabel = @jimport edu.stanford.nlp.ling.CoreLabel
@@ -7,10 +9,12 @@ JTree = @jimport edu.stanford.nlp.trees.Tree
 JSemanticGraph = @jimport edu.stanford.nlp.semgraph.SemanticGraph
 JHasWord = @jimport edu.stanford.nlp.ling.HasWord
 JTaggedWord = @jimport edu.stanford.nlp.ling.TaggedWord
+JMaxentTagger = @jimport edu.stanford.nlp.tagger.maxent.MaxentTagger
+JStringReader = @jimport java.io.StringReader
 JDependencyParser = @jimport edu.stanford.nlp.parser.nndep.DependencyParser
 JDocumentPreprocessor = @jimport edu.stanford.nlp.process.DocumentPreprocessor
-JMaxentTagger = @jimport edu.stanford.nlp.tagger.maxent.MaxentTagger
 JGrammaticalStructure = @jimport edu.stanford.nlp.trees.GrammaticalStructure
+
 
 #Java classes
 ##Inner

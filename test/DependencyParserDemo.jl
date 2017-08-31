@@ -8,17 +8,24 @@ taggerPath = "/home/john/.julia/v0.5/JavaCoreNLP/jvm/corenlp-wrapper/target/edu/
 
 text = "I can almost always tell when movies use fake dinosaurs."
 
-println("DPD: 11")
 tagger = MaxentTagger(taggerPath)
-println("DPD: 13")
-#parser = DependencyParser(modelPath)
-#
-#
-#parser = DependencyParser()
-println("DPD: 18")
+println("DPD: 12")
 
 parser = DependencyParser(modelPath)
-println("DPD: 21")
+println("DPD: 15")
 
-#taggedsentences = MaxentTagger(tagger, )
+stringreader  = StringReader(text)
+println("DPD: 18")
+
+tokenizer = DocumentPreprocessor(stringreader)
+println("DPD: 20")
+
+for sentence in JavaCall.iterator(tokenizer)
+    tagged = tagSentence(sentence)
+    println("DPD: 23")
+    gs = predict(tagged)
+    println("DPD: 25")
+    #print something out.
+end
+
 println("Complete.")

@@ -6,7 +6,12 @@ export
     annotate!,
     test1,
     MaxentTagger,
-    DependencyParser
+    DependencyParser,
+    Document,
+    StringReader,
+    DocumentPreprocessor,
+    tagSentence,
+    predict
 
 include("core.jl")
 

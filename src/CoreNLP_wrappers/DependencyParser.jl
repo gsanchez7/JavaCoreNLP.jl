@@ -14,23 +14,42 @@ For example, in,
 the 'lemma' key maps to a lemma JString (the value).
 =============================================================================#
 
-
-type DependencyParser
-    jdp::JDependencyParser
-end
-
-#function DependencyParser(modelPath::AbstractString)
-function DependencyParser()
-    jdp = JDependencyParser(())  #Constructor is DependencyParser(Properties properties). Must allow properties = void.
-    return DependencyParser(jdp)
-end
-
-#=
-function DependencyParser(parser::DependencyParser, modelPath::AbstractString)
-    return narrow(jcall(parser.jdp, "loadFromModelFile", JObject, (JString,), modelPath))
-end
-=#
-
+#DependencyParser parser = DependencyParser.loadFromModelFile(modelPath);
 function DependencyParser(modelPath::AbstractString)
-    return narrow(jcall(JDependencyParserClass, "loadFromModelFile", JObject, (JString,), modelPath))
+    return narrow(jcall(JDependencyParser, "loadFromModelFile", JDependencyParser, (JString,), modelPath))
+end
+
+
+#DocumentPreprocessor tokenizer = new DocumentPreprocessor(new StringReader(text));
+
+type StringReader
+    jsr::JStringReader
+end
+
+function StringReader(text::AbstractString)
+    jsr = JStringReader((JString,), text)
+    return StringReader(jsr)
+end
+
+#function StringReader(text::AbstractString)
+#    return JStringReader((JString,), text)
+#end
+
+type DocumentPreprocessor
+    jdp::JDocumentPreprocessor
+end
+
+function DocumentPreprocessor(stringreader::StringReader)
+    jdp = JDocumentPreprocessor((JStringReader,), stringreader.jsr)
+    return DocumentPreprocessor(jdp)
+end
+
+#List<TaggedWord> tagged = tagger.tagSentence(sentence)
+function tagSentence(sentence::JHasWord)
+    jcall(tagger, "tagSentence", JArrayList, (JHasWord,), sentence)
+end
+
+#GrammaticalStructure gs = parser.predict(tagged);
+function predict(tagged::JArrayList)
+    jcall(parser, "predict", JGrammaticalStructure, (JArrayList,), tagged)
 end
