@@ -1,3 +1,6 @@
+JDocument = @jimport edu.stanford.nlp.simple.Document
+JSentence = @jimport edu.stanford.nlp.simple.Sentence
+
 type Document
     jdoc::JDocument
 end

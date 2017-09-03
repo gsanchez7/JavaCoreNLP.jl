@@ -11,7 +11,10 @@ export
     StringReader,
     DocumentPreprocessor,
     tagSentence,
-    predict
+    predict,
+    JArrayList,
+    JList,
+    JCollection
 
 include("core.jl")
 

@@ -1,15 +1,11 @@
 using JavaCall
 
 include("init.jl")
-include("java.jl")
+#include("java.jl") #?
 include("utils.jl")
-include("./CoreNLP_wrappers/Annotation.jl")
+include("Java_wrappers.jl")
 include("pipeline.jl")
-#include("./CoreNLP_wrappers/Annotation.jl")
-include("./CoreNLP_wrappers/CoreLabel.jl")
-include("./CoreNLP_wrappers/Tree.jl")
-include("./CoreNLP_wrappers/MaxentTagger.jl")
-include("./CoreNLP_wrappers/DependencyParser.jl")
+
 
 function test1(text::String, annotators::String...)
     pipeline = Pipeline(annotators...)
@@ -22,13 +18,16 @@ function test1(text::String, annotators::String...)
         tokens = Tokens(sentence)
         for token in JavaCall.iterator(tokens)
             lemma = Lemma(token)
-            pos = POS(token)
+            pos = Tag(token)
             ne = NER(token)
             str = ToString(token)
             value = Value(token)
             word = Word(token)
             println("lemma= $lemma  pos= $pos  ne= $ne  str= $str  value= $value  word= $word")
         end
+        #tree = Tree(sentence)
+        #semgraph = Semgraph(sentence)
+        println("core: 30")
     end
 end
 
