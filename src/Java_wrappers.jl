@@ -181,6 +181,12 @@ function StringReader(text::AbstractString)
     jsr = JStringReader((JString,), text)
     return StringReader(jsr)
 end
+
+function readStringReader(jsr::JStringReader)
+    return jcall(jsr, "read", jint, (),)
+end
+
+
 #==============================================================================#
 
 
@@ -199,6 +205,12 @@ end
 function predict(parser::JDependencyParser , tagged::JList)
     jcall(parser, "predict", JGrammaticalStructure, (JList,), tagged)
 end
+
+function GrammaticalStructureToString(gs::JGrammaticalStructure)
+    return jcall(gs, "toString", JString, ())
+end
+
+
 #==============================================================================#
 
 
