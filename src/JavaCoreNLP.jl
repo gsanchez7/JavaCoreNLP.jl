@@ -9,7 +9,9 @@ export
     tagSentence,
     JList,
     predict,
-    GrammaticalStructureToString
+    GrammaticalStructureToString,
+    word,
+    tag
 
 include("core.jl")
 

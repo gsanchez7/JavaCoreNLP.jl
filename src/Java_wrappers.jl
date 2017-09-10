@@ -6,12 +6,14 @@ JTokensAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$To
 JTreeAnnotationClass = classforname("edu.stanford.nlp.trees.TreeCoreAnnotations\$TreeAnnotation")
 JCollapsedCCProcessedDependenciesAnnotationClass = classforname("edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations\$CollapsedCCProcessedDependenciesAnnotation")
 
+##Wrapper
 type Annotation
     jann::JAnnotation
 end
 
 Base.show(io::IO, ann::Annotation) = print(io, "Annotation(...)")  # TODO: make more meaningful show
 
+##Constructor
 function Annotation(text::AbstractString)
     jann = JAnnotation((JString,), text)
     return Annotation(jann)
@@ -42,12 +44,14 @@ end
 #edu.stanford.nlp.pipeline.StanfordCoreNLP======================================
 JStanfordCoreNLP = @jimport edu.stanford.nlp.pipeline.StanfordCoreNLP
 
+##Wrapper
 type StanfordCoreNLP
     jpipeline::JStanfordCoreNLP
 end
 
 Base.show(io::IO, pipeline::StanfordCoreNLP) = print(io, "StanfordCoreNLP(...)")
 
+##Constructor
 function StanfordCoreNLP(props::Dict{String, String})
     jprops = to_jprops(props)
     jpipeline = JStanfordCoreNLP((JProperties,), jprops)
@@ -85,7 +89,7 @@ function Word(token::JCoreLabel)
 end
 
 ##Prints a full dump of a CoreMap.
-function ToString(token::JCoreLabel)
+function CoreMapToString(token::JCoreLabel)
     return jcall(token, "toString", JString, ())
 end
 
@@ -166,6 +170,20 @@ end
 #function numTags(tagger::MaxentTagger, sentence::JList)
 #    jcall(tagger.jmet, "numTags", jint, (JList,), sentence)
 #end
+
+#==============================================================================#
+
+
+#edu.stanford.nlp.ling.TaggedWord===============================================
+JTaggedWord = @jimport edu.stanford.nlp.ling.TaggedWord
+
+function tag(taggedword::JTaggedWord)
+    return jcall(taggedword, "tag", JString, ())
+end
+
+function word(taggedword::JTaggedWord)
+    return jcall(taggedword, "word", JString, ())
+end
 
 #==============================================================================#
 

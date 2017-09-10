@@ -1,7 +1,6 @@
 using JavaCoreNLP
 
 pkgDirPath = Pkg.Dir.path()
-println("pkgDirPath = $pkgDirPath")
 modelPath = string(pkgDirPath, "/JavaCoreNLP/jvm/corenlp-wrapper/target/edu/stanford/nlp/models/parser/nndep/english_UD.gz")
 taggerPath = string(pkgDirPath, "/JavaCoreNLP/jvm/corenlp-wrapper/target/edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger")
 
@@ -14,8 +13,11 @@ tokenizer = DocumentPreprocessor(stringreader)
 
 for sentence in JavaCall.iterator(tokenizer.jdp)
     println("New sentence=========")
-    tagged = tagSentence(tagger, convert(JList, sentence))
-    gs = predict(parser, tagged)
+    taggedlist = tagSentence(tagger, convert(JList, sentence))
+    for taggedword in JavaCall.iterator(taggedlist)
+        println("word = ", word(taggedword), "   ", "pos = ", tag(taggedword))
+    end
+    gs = predict(parser, taggedlist)
     stringGS = GrammaticalStructureToString(gs)
     println("stringGS = $stringGS")
     println(" ")

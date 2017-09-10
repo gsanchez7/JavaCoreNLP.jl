@@ -10,7 +10,6 @@ function test1(text::String, annotators::String...)
     pipeline = Pipeline(annotators...)
     doc = Annotation(text)
     annotate!(pipeline, doc)
-    println("core: 21")
 
     sentences = Sentences(doc)
     for sentence in JavaCall.iterator(sentences)
@@ -19,14 +18,15 @@ function test1(text::String, annotators::String...)
             lemma = Lemma(token)
             pos = Tag(token)
             ne = NER(token)
-            str = ToString(token)
+            str = CoreMapToString(token)
             value = Value(token)
             word = Word(token)
             println("lemma= $lemma  pos= $pos  ne= $ne  str= $str  value= $value  word= $word")
         end
-        #tree = Tree(sentence)
-        #semgraph = Semgraph(sentence)
-        println("core: 30")
+        tree = Tree(sentence)
+        println("core: 27")
+        semgraph = Semgraph(sentence)
+        println("core: 29")
     end
 end
 
