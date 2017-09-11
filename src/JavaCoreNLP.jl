@@ -1,15 +1,15 @@
 module JavaCoreNLP
 
 export
-    test1,
+    test,
     MaxentTagger,
-    DependencyParser,
+    dependency_parser,
     StringReader,
     DocumentPreprocessor,
-    tagSentence,
+    tagsentence,
     JList,
     predict,
-    GrammaticalStructureToString,
+    to_string,
     word,
     tag
 

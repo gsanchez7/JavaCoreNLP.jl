@@ -6,57 +6,35 @@ include("Java_wrappers.jl")
 include("pipeline.jl")
 
 
-function test1(text::String, annotators::String...)
-    pipeline = Pipeline(annotators...)
+function test(text::String, annotators::String...)
+
+    #Construct pipeline and perform annotation.
+    pline = pipeline(annotators...)
     doc = Annotation(text)
-    annotate!(pipeline, doc)
+    annotate!(pline, doc)
 
-    sentences = Sentences(doc)
-    for sentence in JavaCall.iterator(sentences)
-        tokens = Tokens(sentence)
-        for token in JavaCall.iterator(tokens)
-            lemma = Lemma(token)
-            pos = Tag(token)
-            ne = NER(token)
-            str = CoreMapToString(token)
-            value = Value(token)
-            word = Word(token)
-            println("lemma= $lemma  pos= $pos  ne= $ne  str= $str  value= $value  word= $word")
-        end
-        tree = Tree(sentence)
-        println("core: 27")
-        semgraph = Semgraph(sentence)
-        println("core: 29")
-    end
-end
+    #Interrogate the annotated doc.
+    sentencelist = sentences(doc)
+    for sentence in JavaCall.iterator(sentencelist)
+        println("New sentence=========")
+        tokenlist = tokens(sentence)
+        #Interrogate CoreLabel's
+        for token in JavaCall.iterator(tokenlist)
+            lem = lemma(token)
+            pos = tag(token)
+            ne = ner(token)
+            str = to_string(token)
+            val = value(token)
+            wrd = word(token)
+            println("lem= $lem  pos= $pos  ne= $ne  str= $str  val= $val  wrd= $wrd")
+        end #for token
 
+        #Interrogage SemanticGraph's
+        semgraph = semanticgraph(sentence)
+        semgraph_list = sg_list(semgraph)
+        semgraph_size = sg_size(semgraph)
+        println("semgraph_size = ", semgraph_size)
+        println("semgraph_list = ", semgraph_list)
 
-
-# A very quick introduction to JavaCall:
-#
-# 1. Import class and give it a name in Julia:
-#
-#      JProperties = @jimport java.util.Properties
-#      JStanfordCoreNLP = @jimport edu.stanford.nlp.pipeline.StanfordCoreNLP
-#
-# 2. Create an instance of this class:
-#
-#      jprops = JProperties(())
-#      corenlp = JStanfordCoreNLP((JProperties), jprops)
-#
-#    The 1st argument is a tuple of types of this constructor, the rest
-#    are actual arguments(instances of other classes)
-#
-# 3. Call a method of this instance
-#
-#      jcall(jprops, "setProperty", JObject, (JString, JString), "foo", "bar")
-#
-#    The arguments are:
-#
-#      * jprops - instance of Java class or class itself
-#      * "setProperty" - name of a method
-#      * JObject - return type
-#      * (JString, JString) - tuple of method argument types
-#      * key, value - actual arguments
-#
-# See more in official docs: http://juliainterop.github.io/JavaCall.jl/
+    end #for sentence
+end #function

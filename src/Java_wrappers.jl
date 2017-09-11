@@ -1,5 +1,5 @@
 
-#edu.stanford.nlp.pipeline.Annotation===========================================
+#edu.stanford.nlp.pipeline.Annotation==========================================#
 JAnnotation = @jimport edu.stanford.nlp.pipeline.Annotation
 JSentencesAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$SentencesAnnotation")
 JTokensAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$TokensAnnotation")
@@ -11,7 +11,8 @@ type Annotation
     jann::JAnnotation
 end
 
-Base.show(io::IO, ann::Annotation) = print(io, "Annotation(...)")  # TODO: make more meaningful show
+#TODO: make more meaningful show
+Base.show(io::IO, ann::Annotation) = print(io, "Annotation(...)")
 
 ##Constructor
 function Annotation(text::AbstractString)
@@ -20,25 +21,25 @@ function Annotation(text::AbstractString)
 end
 
 ##Returns iterable list of annotated sentences in an Annotation.
-function Sentences(doc::Annotation)
+function sentences(doc::Annotation)
     return narrow(jcall(doc.jann, "get", JObject, (JClass,), JSentencesAnnotationClass))
 end
 
 ##Returns iterable list of tokens in an annotated sentence.
-function Tokens(sentence::JAnnotation)
+function tokens(sentence::JAnnotation)
     return narrow(jcall(sentence, "get", JObject, (JClass,), JTokensAnnotationClass))
 end
 
 ##Returns the syntactic parse tree of a sentence.
-function Tree(sentence::JAnnotation)
+function tree(sentence::JAnnotation)
     return narrow(jcall(sentence, "get", JObject, (JClass,), JTreeAnnotationClass))
 end
 
 ##Returns the syntactic dependencies of a sentence.
-function Semgraph(sentence::JAnnotation)
+function semanticgraph(sentence::JAnnotation)
     return narrow(jcall(sentence, "get", JObject, (JClass,), JCollapsedCCProcessedDependenciesAnnotationClass))
 end
-#==============================================================================#
+
 
 
 #edu.stanford.nlp.pipeline.StanfordCoreNLP======================================
@@ -49,6 +50,7 @@ type StanfordCoreNLP
     jpipeline::JStanfordCoreNLP
 end
 
+#TODO: make more meaningful show
 Base.show(io::IO, pipeline::StanfordCoreNLP) = print(io, "StanfordCoreNLP(...)")
 
 ##Constructor
@@ -57,60 +59,54 @@ function StanfordCoreNLP(props::Dict{String, String})
     jpipeline = JStanfordCoreNLP((JProperties,), jprops)
     return StanfordCoreNLP(jpipeline)
 end
-#==============================================================================#
+
 
 
 #edu.stanford.nlp.ling.CoreLabel================================================
 JCoreLabel = @jimport edu.stanford.nlp.ling.CoreLabel
 
 ##Returns the lemma value of the label (or null if none).
-function Lemma(token::JCoreLabel)
+function lemma(token::JCoreLabel)
     return jcall(token, "lemma", JString, ())
 end
 
 ##Returns the tag value of the label (or null if none).
-function Tag(token::JCoreLabel)
+function tag(token::JCoreLabel)
     return jcall(token, "tag", JString, ())
 end
 
 ##Returns the named entity class of the label (or null if none).
-function NER(token::JCoreLabel)
+function ner(token::JCoreLabel)
     return jcall(token, "ner", JString, ())
 end
 
 ##Return the String which is the original character sequence of the token.
-function OriginalText(token::JCoreLabel)
+function originaltext(token::JCoreLabel)
     return jcall(token, "originalText", JString, ())
 end
 
 ##Return the word value of the label (or null if none).
-function Word(token::JCoreLabel)
+function word(token::JCoreLabel)
     return jcall(token, "word", JString, ())
 end
 
 ##Prints a full dump of a CoreMap.
-function CoreMapToString(token::JCoreLabel)
+function to_string(token::JCoreLabel)
     return jcall(token, "toString", JString, ())
 end
 
-##Not implemented. See CoreLabelTokenFactory(boolean addIndices) to add this.
-function Index(token::JCoreLabel)
-    return jcall(token, "index", JString, ())
-end
-
 ##Returns a String representation of just the "main" value of this label.
-function Value(token::JCoreLabel)
+function value(token::JCoreLabel)
     return jcall(token, "value", JString, ())
 end
-#==============================================================================#
+
 
 
 #edu.stanford.nlp.trees.Tree====================================================
-
 JTree = @jimport edu.stanford.nlp.trees.Tree
 
 ##Converts parse tree to string in Penn Treebank format.
-function treeToString(tree::JTree)
+function to_string(tree::JTree)
     return jcall(tree, "toString", JString, ())
 end
 
@@ -138,13 +134,12 @@ end
 function iterator(tree::JTree)
     return jcall(tree, "iterator", JString, ())
 end
-#==============================================================================#
+
 
 
 #edu.stanford.nlp.tagger.maxent.MaxentTagger====================================
 JArrayList = @jimport java.util.ArrayList
 JList = @jimport java.util.List
-JHasWord = @jimport edu.stanford.nlp.ling.HasWord
 JMaxentTagger = @jimport edu.stanford.nlp.tagger.maxent.MaxentTagger
 
 type MaxentTagger
@@ -157,21 +152,11 @@ function MaxentTagger(path::AbstractString)
     return MaxentTagger(jmet)
 end
 
-##To tag a list of sentences and get back a list of tagged sentences:
-function MaxentTagger(tagger::MaxentTagger, sentences)
-    return narrow(jcall(tagger, "process", JObject, (JArrayList,), sentences)) #JObject -> JArrayList?
-end
-
 ##List<TaggedWord> tagged = tagger.tagSentence(sentence)
-function tagSentence(tagger::MaxentTagger, sentence::JList)
+function tagsentence(tagger::MaxentTagger, sentence::JList)
     jcall(tagger.jmet, "tagSentence", JList, (JList,), sentence)
 end
 
-#function numTags(tagger::MaxentTagger, sentence::JList)
-#    jcall(tagger.jmet, "numTags", jint, (JList,), sentence)
-#end
-
-#==============================================================================#
 
 
 #edu.stanford.nlp.ling.TaggedWord===============================================
@@ -185,7 +170,6 @@ function word(taggedword::JTaggedWord)
     return jcall(taggedword, "word", JString, ())
 end
 
-#==============================================================================#
 
 
 #java.io.StringReader===========================================================
@@ -200,23 +184,16 @@ function StringReader(text::AbstractString)
     return StringReader(jsr)
 end
 
-function readStringReader(jsr::JStringReader)
-    return jcall(jsr, "read", jint, (),)
-end
-
-
-#==============================================================================#
 
 
 #edu.stanford.nlp.parser.nndep.DependencyParser=================================
-
 JDependencyParser = @jimport edu.stanford.nlp.parser.nndep.DependencyParser
 JGrammaticalStructure = @jimport edu.stanford.nlp.trees.GrammaticalStructure
-JCollection = @jimport java.util.Collection
 
 #DependencyParser parser = DependencyParser.loadFromModelFile(modelPath);
-function DependencyParser(modelPath::AbstractString)
-    return narrow(jcall(JDependencyParser, "loadFromModelFile", JDependencyParser, (JString,), modelPath))
+function dependency_parser(modelPath::AbstractString)
+    return narrow(jcall(JDependencyParser, "loadFromModelFile",
+                                JDependencyParser, (JString,), modelPath))
 end
 
 #GrammaticalStructure gs = parser.predict(tagged);
@@ -224,16 +201,13 @@ function predict(parser::JDependencyParser , tagged::JList)
     jcall(parser, "predict", JGrammaticalStructure, (JList,), tagged)
 end
 
-function GrammaticalStructureToString(gs::JGrammaticalStructure)
+function to_string(gs::JGrammaticalStructure)
     return jcall(gs, "toString", JString, ())
 end
 
 
-#==============================================================================#
-
 
 #edu.stanford.nlp.process.DocumentPreprocessor==================================
-
 JDocumentPreprocessor = @jimport edu.stanford.nlp.process.DocumentPreprocessor
 JReader = @jimport java.io.Reader
 
@@ -245,16 +219,21 @@ function DocumentPreprocessor(stringreader::StringReader)
     jdp = JDocumentPreprocessor((JReader,), stringreader.jsr)
     return DocumentPreprocessor(jdp)
 end
-#==============================================================================#
-
-
-#edu.stanford.nlp.trees.GrammaticalStructure====================================
-
-#==============================================================================#
 
 
 
 #edu.stanford.nlp.ling.TaggedWord===============================================
 JTaggedWord = @jimport edu.stanford.nlp.ling.TaggedWord
 
-#==============================================================================#
+
+
+#edu.stanford.nlp.semgraph.SemanticGraph=======================================#
+JSemanticGraph = @jimport edu.stanford.nlp.semgraph.SemanticGraph
+
+function sg_list(semgraph::JSemanticGraph)
+    return jcall(semgraph, "toList", JString, ())
+end
+
+function sg_size(semgraph::JSemanticGraph)
+    return jcall(semgraph, "size", jint, ())
+end

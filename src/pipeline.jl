@@ -1,23 +1,24 @@
 #=======================================================================
 Convenience methods related to construction of pipeline::StanfordCoreNLP.
 
-Usage: pipeline = Pipeline(annotators::String...)
+Usage: pline = pipeline(annotators::String...)
 
-Example: pipeline = Pipeline("pos", "dcoref")
+Example: pline = pipeline("pos", "dcoref")
 
-Uses `checkAnnotators` to validate the annotators in the argument of Pipeline,
-i.e., it checks that each annotator is a key in ANNOTATORS.
+Uses `check_annotators` to validate the annotators in the argument of pipeline,
+i.e., it checks that each annotator is a key in ANNOTATORS. ANNOTATORS must be
+located in ./data/annotators.jl.
 
-Uses `annotatorList` to build a single, comma-separated string of the
-annotators passed to `Pipeline` and their dependencies. For example,
-annotatorList("pos") returns string "pos, ssplit, tokenize". Annotators
+Uses `annotator_list` to build a single, comma-separated string of the
+annotators passed to `pipeline` and their dependencies. For example,
+annotator_list("pos") returns string "pos, ssplit, tokenize". Annotators
 listed in the returned string are unique and ordered.
 =======================================================================#
 
 #Construct a CoreNLP pipeline object suitable for `annotate!` calls.
-function Pipeline(annotators::String...)
-    if checkAnnotators(annotators...)
-        annList = annotatorList(annotators...)
+function pipeline(annotators::String...)
+    if check_annotators(annotators...)
+        annList = annotator_list(annotators...)
         return StanfordCoreNLP(Dict("annotations" => annList))
     else
         println("Invalid annotator in `pipeline` call.")
@@ -28,7 +29,7 @@ end
 
 #Returns true if all arguments are valid annotators, false otherwise.
 include("./data/annotators.jl")
-function checkAnnotators(annotators...)
+function check_annotators(annotators...)
     valid = true
         for a in annotators
             valid = valid && in(a, keys(ANNOTATORS))
@@ -41,7 +42,7 @@ end
 #annotators and their dependencies. For example,
 #annotatorList("pos", "ner") returns "lemma, ner, pos, ssplit, tokenize".
 #The return value is intended as the argument of Pipeline(...)
-function annotatorList(annotators...)
+function annotator_list(annotators...)
     ##Push annotators onto a list. Make unique and sort.
     list = String[]
     for a in annotators
@@ -55,7 +56,7 @@ function annotatorList(annotators...)
     ##Construct Pipeline() call argument by stringing annotators together.
     arg = ""
     for a in list
-       arg = string(arg, a, ", ")
+       arg = Base.string(arg, a, ", ")
     end
     arg = arg[1:length(arg)-2] #Drop trailing comma and space.
 end
