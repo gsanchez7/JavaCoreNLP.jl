@@ -1,28 +1,163 @@
 
-#edu.stanford.nlp.pipeline.Annotation==========================================#
-JAnnotation = @jimport edu.stanford.nlp.pipeline.Annotation
-JSentencesAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$SentencesAnnotation")
-JTokensAnnotationClass = classforname("edu.stanford.nlp.ling.CoreAnnotations\$TokensAnnotation")
-JTreeAnnotationClass = classforname("edu.stanford.nlp.trees.TreeCoreAnnotations\$TreeAnnotation")
-JCollapsedCCProcessedDependenciesAnnotationClass = classforname("edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations\$CollapsedCCProcessedDependenciesAnnotation")
+#===========================java.util.Properties===============================#
+#"The Properties class represents a persistent set of properties...Each key and
+#its corresponding value in the property list is a string."
+#https://docs.oracle.com/javase/7/docs/api/java/util/Properties.html
+#
+#WRAPPER
+type Properties
+    jproperties::JProperties
+end
 
-##Wrapper
+#CONSTRUCTORS
+##key, value argument
+function Properties(key::AbstractString, value::AbstractString)
+    jproperties = JProperties(())
+    jcall(jproperties, "setProperty", JObject, (JString, JString), key, value)
+    return Properties(jproperties)
+end
+
+##Dictionary argument
+function Properties(d::Dict{String, String})
+    jproperties = JProperties(())
+    for (k, v) in d
+        jcall(jproperties, "setProperty", JObject, (JString, JString), k, v)
+    end
+    return Properties(jproperties)
+end
+
+##Value-only argument. Key defaults to "annotators"
+function Properties(value::AbstractString)
+    return Properties("annotators", value)
+end
+
+#CONVENIENCE METHODS
+##Returns a string 'val' corresponding to property 'key'
+function get_property(jprops::JProperties, key::AbstractString="annotators")
+    return jcall(jprops, "getProperty", JString, (JString,), key)
+end
+#------------------------------------------------------------------------------#
+
+
+
+#===============edu.stanford.nlp.pipeline.StanfordCoreNLP======================#
+#"This is a pipeline that takes in a string and returns various analyzed linguistic
+#forms. The String is tokenized via a tokenizer (using a TokenizerAnnotator),
+#and then other sequence model style annotation can be used to add things like
+#lemmas, POS tags, and named entities. These are returned as a list of CoreLabels.
+#Other analysis components build and store parse trees, dependency graphs, etc."
+#https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/pipeline/StanfordCoreNLP.html
+#
+#WRAPPER
+##StanfordCoreNLP wrapper
+type StanfordCoreNLP
+    jstanfordcorenlp::JStanfordCoreNLP
+end
+
+#CONSTRUCTORS
+##Usage:
+##      StanfordCoreNLP(Dict("annotations" => "tokenize,ssplit,pos")
+##
+##Annotations must be to the right of their dependencies. See--
+##https://stanfordnlp.github.io/CoreNLP/dependencies.html
+function StanfordCoreNLP(dict::Dict{String, String})
+    properties = Properties(dict)
+    return StanfordCoreNLP(JStanfordCoreNLP((JProperties,), properties))
+end
+
+##Usage:
+##      StanfordCoreNLP("pos", "parse")
+##
+##Annotation arguments may be unordered. Dependencies are added automatically.
+function StanfordCoreNLP(annotators::String...)
+    if check_annotators(annotators...)
+        annList = order!(dependencies(annotators...))
+        annCSVString = join(annList, ",")
+        jprops = JProperties(())
+        jcall(jprops, "setProperty", JObject, (JString, JString), "annotators", annCSVString)
+        return StanfordCoreNLP(JStanfordCoreNLP((JProperties,), jprops))
+    else
+        println("Invalid annotator in `StanfordCoreNLP` call.")
+        return 1
+    end
+end
+
+#CONVENIENCE METHODS
+##Returns true if all arguments are valid annotators, false otherwise.
+function check_annotators(annotators...)
+    valid = true
+        for ann in annotators
+            valid = valid && in(ann, keys(ANNOTATOR_DEPENDENCIES))
+        end
+    return valid
+end
+
+##Accepts an unordered list of annotators and adds all dependencies. For example,
+##annotator_list("ssplit") returns ["ssplit", "tokenize"].
+function dependencies(annotators...)
+    list = String[]
+    for a in annotators
+        for b in ANNOTATOR_DEPENDENCIES[a]
+            push!(list, b)
+        end
+        push!(list, a)
+    end
+    return unique(list)
+end
+
+##Accepts a list of annotators and orders it in place according to ANNOTATORS.
+function order!(annotators::Array{String,1})
+    list = String[]
+    for ann in ORDERED_ANNOTATOR_LIST
+        if in(ann, annotators)
+            push!(list, ann)
+        end
+    end
+    annotators = list
+end
+
+#Returns a JProperties of a StanfordCoreNLP pipeline corresponding to `key`.
+#Defaults to key = "annotators".
+function get_properties(pipeline::StanfordCoreNLP)
+    return jcall(pipeline.jstanfordcorenlp, "getProperties", JProperties, ())
+end
+
+#Return a String that gives detailed human-readable information about how much
+#time was spent by each annotator and by the entire annotation pipeline.
+function timinginformation(pipeline::StanfordCoreNLP)
+    return jcall(pipeline.jstanfordcorenlp, "timingInformation", JString, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#====================edu.stanford.nlp.pipeline.Annotation======================#
+#"An annotation representing a span of text in a document."
+#https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/pipeline/Annotation.html
+#
+#WRAPPER
 type Annotation
-    jann::JAnnotation
+    jannotation::JAnnotation
 end
 
-#TODO: make more meaningful show
-Base.show(io::IO, ann::Annotation) = print(io, "Annotation(...)")
-
-##Constructor
+#CONSTRUCTORS
+##function Annotation(text::AbstractString)
+##    jannotation = JAnnotation((JString,), text)
+##    return Annotation(jannotation)
+##end
 function Annotation(text::AbstractString)
-    jann = JAnnotation((JString,), text)
-    return Annotation(jann)
+    return Annotation(JAnnotation((JString,), text))
 end
 
-##Returns iterable list of annotated sentences in an Annotation.
+#CONVENIENCE METHODS
+##Returns iterable list of sentences in an annotated text.
 function sentences(doc::Annotation)
-    return narrow(jcall(doc.jann, "get", JObject, (JClass,), JSentencesAnnotationClass))
+    return narrow(jcall(doc.jannotation, "get", JObject, (JClass,), JSentencesAnnotationClass))
+end
+
+##Returns a CorefChainAnnotation HashMap. Call 'values' to get an iterator.
+function corefchainannotation(doc::Annotation)
+    return narrow(jcall(doc.jannotation, "get", JObject, (JClass,), JCorefChainAnnotationClass))
 end
 
 ##Returns iterable list of tokens in an annotated sentence.
@@ -30,122 +165,270 @@ function tokens(sentence::JAnnotation)
     return narrow(jcall(sentence, "get", JObject, (JClass,), JTokensAnnotationClass))
 end
 
-##Returns the syntactic parse tree of a sentence.
-function tree(sentence::JAnnotation)
+##Returns a collection of relation triples from an annotated sentence.
+function relationtriples(sentence::JAnnotation)
+    return narrow(jcall(sentence, "get", JObject, (JClass,), JRelationTriplesAnnotationClass))
+end
+
+##Returns a LabeledScoredTreeNode object, the syntactic parse tree of a sentence.
+function labeledscoredtreenode(sentence::JAnnotation)
     return narrow(jcall(sentence, "get", JObject, (JClass,), JTreeAnnotationClass))
 end
 
-##Returns the syntactic dependencies of a sentence.
-function semanticgraph(sentence::JAnnotation)
+##Returns a SemanticGraph.
+function basicdependencies(sentence::JAnnotation)
+    return narrow(jcall(sentence, "get", JObject, (JClass,), JBasicDependenciesAnnotationClass))
+end
+
+##Returns a SemanticGraph.
+function collapseddependencies(sentence::JAnnotation)
+    return narrow(jcall(sentence, "get", JObject, (JClass,), JCollapsedDependenciesAnnotationClass))
+end
+
+##Returns a SemanticGraph.
+function collapsedccprocesseddependencies(sentence::JAnnotation)
     return narrow(jcall(sentence, "get", JObject, (JClass,), JCollapsedCCProcessedDependenciesAnnotationClass))
 end
 
-
-
-#edu.stanford.nlp.pipeline.StanfordCoreNLP======================================
-JStanfordCoreNLP = @jimport edu.stanford.nlp.pipeline.StanfordCoreNLP
-
-##Wrapper
-type StanfordCoreNLP
-    jpipeline::JStanfordCoreNLP
+##Returns an iterable set of edu.stanford.nlp.coref.data.Mention.
+function corefmentionsannotation(sentence::JAnnotation)
+    return narrow(jcall(sentence, "get", JObject, (JClass,), JCorefMentionsAnnotationClass))
 end
 
-#TODO: make more meaningful show
-Base.show(io::IO, pipeline::StanfordCoreNLP) = print(io, "StanfordCoreNLP(...)")
-
-##Constructor
-function StanfordCoreNLP(props::Dict{String, String})
-    jprops = to_jprops(props)
-    jpipeline = JStanfordCoreNLP((JProperties,), jprops)
-    return StanfordCoreNLP(jpipeline)
+##Returns Sentiment
+function sentimentannotation(sentence::JAnnotation)
+    return narrow(jcall(sentence, "get", JObject, (JClass,), JSentimentAnnotatedTreeClass))
 end
 
 
+##Performs the annotation in place.
+function annotate!(pipeline::StanfordCoreNLP, doc::Annotation)
+    jcall(pipeline.jstanfordcorenlp, "annotate", Void, (JAnnotation,), doc.jannotation)
+end
+#------------------------------------------------------------------------------#
 
-#edu.stanford.nlp.ling.CoreLabel================================================
-JCoreLabel = @jimport edu.stanford.nlp.ling.CoreLabel
 
-##Returns the lemma value of the label (or null if none).
-function lemma(token::JCoreLabel)
-    return jcall(token, "lemma", JString, ())
+
+#=============================java.util.HashMap================================#
+#https://docs.oracle.com/javase/7/docs/api/java/util/HashMap.html
+#
+function values(hashmap::JHashMap)
+    return jcall(hashmap, "values", JCollection, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#==========================edu.stanford.nlp.coref.data.Mention=================#
+function to_string(mention::JMention)
+    return jcall(mention, "toString", JString, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#======edu.stanford.nlp.dcoref.CorefCoreAnnotations.CorefChainAnnotation=======#
+function to_string(corefchain::JCorefChain)
+    return jcall(corefchain, "toString", JString, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#================edu.stanford.nlp.trees.LabeledScoredTreeNode==================#
+function children(jlstn::JLabeledScoredTreeNode)
+    return jcall(jlstn, "children", JArray, ())  #Unsure of return type: JArray? JList? JCollection?
 end
 
-##Returns the tag value of the label (or null if none).
-function tag(token::JCoreLabel)
-    return jcall(token, "tag", JString, ())
+##Returns a Set of Constituents generated by the parse tree.
+function constituents(jlstn::JLabeledScoredTreeNode)
+    return jcall(jlstn, "constituents", JSet, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#====================edu.stanford.nlp.trees.Constituent========================#
+#"A Constituent object defines a generic edge in a graph."
+#https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/Constituent.html
+#
+function to_string(constituent::JConstituent)
+    return jcall(constituent, "toString", JString, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#===================edu.stanford.nlp.ie.util.RelationTriple====================#
+#"A (subject, relation, object) triple."
+#https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/ie/util/RelationTriple.html
+#
+##The subject of this relation triple, as a String
+function subjectGloss(triple::JRelationTriple)
+    return jcall(triple, "subjectGloss", JString, ())
 end
 
-##Returns the named entity class of the label (or null if none).
-function ner(token::JCoreLabel)
-    return jcall(token, "ner", JString, ())
+##The object of this relation triple, as a String
+function objectGloss(triple::JRelationTriple)
+    return jcall(triple, "objectGloss", JString, ())
 end
 
-##Return the String which is the original character sequence of the token.
-function originaltext(token::JCoreLabel)
-    return jcall(token, "originalText", JString, ())
+##The relation of this relation triple, as a String
+function relationGloss(triple::JRelationTriple)
+    return jcall(triple, "relationGloss", JString, ())
 end
 
-##Return the word value of the label (or null if none).
-function word(token::JCoreLabel)
-    return jcall(token, "word", JString, ())
+##The subject lemma of this relation triple, as a String
+function subjectLemmaGloss(triple::JRelationTriple)
+    return jcall(triple, "subjectLemmaGloss", JString, ())
 end
 
-##Prints a full dump of a CoreMap.
+##The object lemma of this relation triple, as a String
+function objectLemmaGloss(triple::JRelationTriple)
+    return jcall(triple, "objectLemmaGloss", JString, ())
+end
+
+##The relation lemma of this relation triple, as a String
+function relationLemmaGloss(triple::JRelationTriple)
+    return jcall(triple, "relationLemmaGloss", JString, ())
+end
+
+##Returns a JList of JCoreLabels that represent the given relation triple as a flat sentence.
+function asSentence(triple::JRelationTriple)
+    return jcall(triple, "asSentence", JList, ())
+end
+
+##If true, this relation expresses a "to be" relation.
+function isPrefixBe(triple::JRelationTriple)
+    return jcall(triple, "isPrefixBe", jboolean, ())
+end
+
+##If true, this relation expresses a "to be" relation (with the be at the end of the sentence).
+function isSuffixBe(triple::JRelationTriple)
+    return jcall(triple, "	isSuffixBe", jboolean, ())
+end
+
+##If true, this relation has an ungrounded "of" at the end of the relation.
+function isSuffixOf(triple::JRelationTriple)
+    return jcall(triple, "	isSuffixOf", jboolean, ())
+end
+
+##Returns human-readable description of this relation triple, as a tab-separated line.
+function to_string(triple::JRelationTriple)
+    return jcall(triple, "toString", JString, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#====================edu.stanford.nlp.ling.CoreLabel===========================#
+##"A CoreLabel represents a single word with ancillary information attached using
+##CoreAnnotations. A CoreLabel also provides convenient methods to access tags,
+##lemmas, etc. (if the proper annotations are set). A CoreLabel is a Map from keys
+##(which are Class objects) to values, whose type is determined by the key."
+##https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/ling/CoreLabel.html
+##
+#WRAPPER
+type CoreLabel
+    token::JCoreLabel
+    index::Int
+    lemma::String
+    pos::String
+    ner::String
+    originaltext::String
+    word::String
+    value::String
+end
+
+#CONSTRUCTORS
+function CoreLabel(token::JCoreLabel)
+    index = jcall(token, "index", jint, ())
+    lemma = jcall(token, "lemma", JString, ())
+    pos = jcall(token, "tag", JString, ())
+    ner = jcall(token, "ner", JString, ())
+    originaltext = jcall(token, "originalText", JString, ())
+    word = jcall(token, "word", JString, ())
+    value = jcall(token, "value", JString, ())
+    return CoreLabel(token, index, lemma, pos, ner, originaltext, word, value)
+end
+
+#CONVENIENCE METHODS
+##Converts a JCoreLabel object to String.
 function to_string(token::JCoreLabel)
     return jcall(token, "toString", JString, ())
 end
 
-##Returns a String representation of just the "main" value of this label.
-function value(token::JCoreLabel)
-    return jcall(token, "value", JString, ())
+##Converts the .token field of a CoreLabel object to String.
+function to_string(corelabel::CoreLabel)
+    return jcall(corelabel.jcorelabel, "toString", JString, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#=======================edu.stanford.nlp.trees.Tree============================#
+#WRAPPER
+type Tree
+    jtree::JTree
+    size::jint
+    depth::jint
+    constituents::JSet
+    iterator::JIterator
 end
 
+#CONSTRUCTORS
+function Tree(jtree::JTree)
+    size = jcall(tree, "size", jint, ())
+    depth = jcall(tree, "depth", jint, ())
+    constituents = jcall(tree, "constituents", JString, ())
+    iterator = jcall(tree, "iterator", JString, ())
+    return(jtree, size, depth, constituents, iterator)
+end
 
+#CONVENIENCE METHODS
+##Converts parse tree to string in Penn Treebank format.
+function to_string(jtree::JTree)
+    return jcall(jtree, "toString", JString, ())
+end
 
-#edu.stanford.nlp.trees.Tree====================================================
-JTree = @jimport edu.stanford.nlp.trees.Tree
+##Converts the .jtree field of the Tree wrapper to string in Penn Treebank format.
+function to_string(tree::Tree)
+    return jcall(tree.jtree, "toString", JString, ())
+end
+
+function to_string(jlstn::JLabeledScoredTreeNode)
+    return jcall(jlstn, "toString", JString, ())
+end
 
 ##Converts parse tree to string in Penn Treebank format.
-function to_string(tree::JTree)
-    return jcall(tree, "toString", JString, ())
+function pennstring(jtree::JTree)
+    return jcall(jtree, "pennString", JString, ())
 end
 
-##Returns the number of nodes the tree contains.
-function size(tree::JTree)
-    return jcall(tree, "size", JString, ())
+##Converts parse tree to string in Penn Treebank format.
+function pennstring(tree::Tree)
+    return jcall(tree.jtree, "pennString", JString, ())
 end
 
-##Finds the depth of the tree.
-function depth(tree::JTree)
-    return jcall(tree, "depth", JString, ())
+#Returns a list of children (trees) for the current node.
+function getChildrenAsList(jlstn::JLabeledScoredTreeNode) #JTree?
+    return jcall(jlstn, "getChildrenAsList", JList, ())
 end
-
-##Returns an array of children for the current node.
-function children(tree::JTree)
-    return jcall(tree, "children", JString, ())
-end
-
-##Returns the Constituents generated by the parse tree.
-function constituents(tree::JTree)
-    return jcall(tree, "constituents", JString, ())
-end
-
-##Returns an iterator over all the nodes of the tree.
-function iterator(tree::JTree)
-    return jcall(tree, "iterator", JString, ())
-end
+#------------------------------------------------------------------------------#
 
 
 
-#edu.stanford.nlp.tagger.maxent.MaxentTagger====================================
-JArrayList = @jimport java.util.ArrayList
-JList = @jimport java.util.List
-JMaxentTagger = @jimport edu.stanford.nlp.tagger.maxent.MaxentTagger
-
+#=================edu.stanford.nlp.tagger.maxent.MaxentTagger==================#
+##The main class for users to run, train, and test the part of speech tagger.
+##https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/tagger/maxent/MaxentTagger.html
+##
+##WRAPPER
+#=
 type MaxentTagger
     jmet::JMaxentTagger
 end
 
+##CONSTRUCTORS
 ##Path is the location of parameter files for a trained tagger.
 function MaxentTagger(path::AbstractString)
     jmet = JMaxentTagger((JString,), path)
@@ -156,41 +439,42 @@ end
 function tagsentence(tagger::MaxentTagger, sentence::JList)
     jcall(tagger.jmet, "tagSentence", JList, (JList,), sentence)
 end
+=#
+#------------------------------------------------------------------------------#
 
 
 
-#edu.stanford.nlp.ling.TaggedWord===============================================
-JTaggedWord = @jimport edu.stanford.nlp.ling.TaggedWord
+#edu.stanford.nlp.semgraph.SemanticGraph=======================================#
+#"Represents a semantic graph of a sentence or document, with IndexedWord objects for nodes."
+#https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/semgraph/SemanticGraph.html
+#SemanticGraph's used mainly to represent dependencies.
 
-function tag(taggedword::JTaggedWord)
-    return jcall(taggedword, "tag", JString, ())
+#Convert SemanticGraph to String
+function to_string(semgraph::JSemanticGraph)
+    jcall(semgraph, "toString", JString, ())
 end
 
-function word(taggedword::JTaggedWord)
-    return jcall(taggedword, "word", JString, ())
+#Convert SemanticGraph to list.
+function to_list(semgraph::JSemanticGraph)
+    return jcall(semgraph, "toList", JString, ())
 end
 
-
-
-#java.io.StringReader===========================================================
-JStringReader = @jimport java.io.StringReader
-
-type StringReader
-    jsr::JStringReader
+function size(semgraph::JSemanticGraph)
+    return jcall(semgraph, "size", jint, ())
 end
 
-function StringReader(text::AbstractString)
-    jsr = JStringReader((JString,), text)
-    return StringReader(jsr)
+function typedDependencies(semgraph::JSemanticGraph)
+    return jcall(semgraph, "typedDependencies", JCollection, ())
 end
+#------------------------------------------------------------------------------#
 
 
 
-#edu.stanford.nlp.parser.nndep.DependencyParser=================================
-JDependencyParser = @jimport edu.stanford.nlp.parser.nndep.DependencyParser
-JGrammaticalStructure = @jimport edu.stanford.nlp.trees.GrammaticalStructure
-
+#===============edu.stanford.nlp.parser.nndep.DependencyParser=================#
+#Unused in `function test' as of Oct 2, 2017
+#
 #DependencyParser parser = DependencyParser.loadFromModelFile(modelPath);
+
 function dependency_parser(modelPath::AbstractString)
     return narrow(jcall(JDependencyParser, "loadFromModelFile",
                                 JDependencyParser, (JString,), modelPath))
@@ -205,12 +489,43 @@ function to_string(gs::JGrammaticalStructure)
     return jcall(gs, "toString", JString, ())
 end
 
+#------------------------------------------------------------------------------#
 
 
-#edu.stanford.nlp.process.DocumentPreprocessor==================================
-JDocumentPreprocessor = @jimport edu.stanford.nlp.process.DocumentPreprocessor
-JReader = @jimport java.io.Reader
 
+#===================edu.stanford.nlp.trees.TypedDependency=====================#
+#"A TypedDependency is a relation between two words in a GrammaticalStructure.
+#Each TypedDependency consists of a governor word, a dependent word, and a
+#relation, which is normally an instance of GrammaticalRelation."
+#https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/trees/TypedDependency.html
+#
+function to_string(typeddependency::JTypedDependency)
+    return jcall(typeddependency, "toString", JString, ())
+end
+#------------------------------------------------------------------------------#
+
+
+
+#============================java.io.StringReader==============================#
+#Unused in `function test' as of Oct 2, 2017
+#=
+type StringReader
+    jsr::JStringReader
+end
+
+function StringReader(text::AbstractString)
+    jsr = JStringReader((JString,), text)
+    return StringReader(jsr)
+end
+=#
+#------------------------------------------------------------------------------#
+
+
+
+#=================edu.stanford.nlp.process.DocumentPreprocessor================#
+#Unused in `function test' as of Oct 2, 2017
+#
+#=
 type DocumentPreprocessor
     jdp::JDocumentPreprocessor
 end
@@ -219,21 +534,37 @@ function DocumentPreprocessor(stringreader::StringReader)
     jdp = JDocumentPreprocessor((JReader,), stringreader.jsr)
     return DocumentPreprocessor(jdp)
 end
+=#
+#------------------------------------------------------------------------------#
 
 
 
-#edu.stanford.nlp.ling.TaggedWord===============================================
-JTaggedWord = @jimport edu.stanford.nlp.ling.TaggedWord
-
-
-
-#edu.stanford.nlp.semgraph.SemanticGraph=======================================#
-JSemanticGraph = @jimport edu.stanford.nlp.semgraph.SemanticGraph
-
-function sg_list(semgraph::JSemanticGraph)
-    return jcall(semgraph, "toList", JString, ())
+#==============edu.stanford.nlp.parser.lexparser.LexicalizedParser=============#
+#https://nlp.stanford.edu/nlp/javadoc/javanlp/edu/stanford/nlp/parser/lexparser/LexicalizedParser.html
+#
+#WRAPPER
+type LexicalizedParser
+    jlp::JLexicalizedParser
 end
 
-function sg_size(semgraph::JSemanticGraph)
-    return jcall(semgraph, "size", jint, ())
+#CONSTRUCTORS
+function LexicalizedParser(parserFile::String)
+    jlp = JLexicalizedParser((JString,), parserFile)
+    return LexicalizedParser(jlp)
 end
+
+#CONVENIENCE METHODS
+function load_lexalized_parser_model()
+    return jcall(JLexicalizedParser, "loadModel", JLexicalizedParser, ())
+end
+
+#Parse sentence::JList to JTree using lp::JLexicalizedParser
+function lexparse(lp::JLexicalizedParser, sentence::JAnnotation)
+    return jcall(lp, "apply", JTree, (JAnnotation,), sentence)
+end
+
+#Convert Tree to String
+function to_string(parse_tree::JTree)
+    jcall(parse_tree, "toString", JString, ())
+end
+#------------------------------------------------------------------------------#
