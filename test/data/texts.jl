@@ -99,3 +99,9 @@ happy_text = "I was so glad to meet John today.  Whenever I see him I smile."
 
 sad_text = "I didn't feel like getting out of bed today. I kept thinking about
             the funeral."
+
+#Texts about subset relationship
+subset_text_1 = "Apples are a kind of fruit."
+
+#Text about instance relationship
+instance_text_1 = "Peter is a Christian."

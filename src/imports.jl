@@ -1,4 +1,3 @@
-
 #TYPES
 ##java.util
 JArray = @jimport java.util.Array

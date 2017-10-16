@@ -1,6 +1,6 @@
 module JavaCoreNLP
 
-export StanfordCoreNLP, demo, timinginformation
+export StanfordCoreNLP, Annotation, demo, timinginformation, get_properties, get_property, sentences
 
 include("core.jl")
 

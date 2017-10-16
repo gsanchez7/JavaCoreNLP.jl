@@ -13,86 +13,87 @@ function demo(pipeline::StanfordCoreNLP, text::String)
 
     #Get annotators used in this pipeline.
     props = get_properties(pipeline)
-    annList = get_property(props, "annotators")
-    annList = convert(Array{String,1}, split(annList, ","))
+    annCSVString = get_property(props, "annotators")
+    annArray = convert(Array{String,1}, split(annCSVString, ","))
 
     #Perform annotation.
-    if !isempty(annList)
+    if !isempty(annArray)
         doc = Annotation(text)
         annotate!(pipeline, doc);
     else
-        println("core.jl:24. Empty annotator list.")
+        println("core.jl:25. Empty annotator list.")
         return
     end
 
-    #Iterate over sentences.
-    if in("ssplit", annList)
-        for sentence in @iter sentences(doc)
+    if in("ssplit", annArray)
+
+        #Iterate over sentences.
+        sents = sentences(doc)
+        for sent in JavaCall.iterator(sents)
 
             ##Iterate over tokens.
-            if in("tokenize", annList)
+            if in("tokenize", annArray)
                 println("\nTokens=========")
-                tokenlist = tokens(sentence)
-                for token in @iter tokenlist
+                tokenlist = tokens(sent)
+                for token in JavaCall.iterator(tokenlist)
                     cl = CoreLabel(token)
                     @printf "index=%4i  word=%10s  lemma=%10s  pos=%10s  ner=%10s \n" cl.index cl.word cl.lemma cl.pos cl.ner
                 end
             end
 
             ##Parse tree.
-            if in("parse", annList)
+            if in("parse", annArray)
                 println("\nParse tree=========")
-                parse_tree = convert(JTree, labeledscoredtreenode(sentence))
-                @print_penn parse_tree
+                parse_tree = convert(JTree, labeledscoredtreenode(sent))
+                println(pennstring(parse_tree))
             end
 
             ##Dependency semantic graphs.
-            if in("depparse", annList)
+            if in("depparse", annArray)
                 println("\nDependencies=========")
-                @print_string basicdependencies(sentence)
-                @print_string collapseddependencies(sentence)
-                @print_string collapsedccprocesseddependencies(sentence)
-                @print_list basicdependencies(sentence)
-                @print_list collapseddependencies(sentence)
-                @print_list collapsedccprocesseddependencies(sentence)
+                println(to_string(basicdependencies(sent)))
+#                println(to_string(collapseddependencies(sent)))
+#                println(to_string(collapsedccprocesseddependencies(sent)))
+#                println(to_string(basicdependencies(sent)))
+#                println(to_string(collapseddependencies(sent)))
+#                println(to_string(collapsedccprocesseddependencies(sent)))
             end
 
             ##Relation triples.
-            if in("openie", annList)
+            if in("openie", annArray)
                 println("\nRelations Triples=========")
-                triples = relationtriples(sentence)
-                for triple in @iter triples
+                triples = relationtriples(sent)
+                for triple in JavaCall.iterator(triples)
                     triple = convert(JRelationTriple, triple)
-                    @print_string triple
+                    println(to_string(triple))
                     @printf "subject = %s.   Relation = %s.  Object = %s.\n" subjectGloss(triple) relationGloss(triple) objectGloss(triple)
                     @printf "subject = %s.   Relation = %s.  Object = %s.\n" subjectLemmaGloss(triple) relationLemmaGloss(triple) objectLemmaGloss(triple)
                 end
             end
 
             ##Mentions
-            if in("mention", annList)
-                println("Mentions=========")
-                mentions = corefmentionsannotation(sentence)
-                for mention in @iter mentions
-                    @print_string mention
+            if in("mention", annArray)
+                println("\nMentions=========")
+                mentions = corefmentionsannotation(sent)
+                for mention in JavaCall.iterator(mentions)
+                    println(to_string(mention))
                 end
             end
 
-            if in("sentiment", annList)
+            if in("\nsentiment", annArray)
                 println("Sentiment=========")
-                sentiment = convert(JTree, sentimentannotation(sentence))
-                @print_penn sentiment
+                sentiment = convert(JTree, sentimentannotation(sent))
+                println(pennstring(sentiment))
             end
-        end #sentence in @iter sentences(doc)
-    end #if in("ssplit", annList)
-
-    #CorefChain's
-    if in("coref", annList)
-        println("\n Coref Chains=========")
-        corefchains = values(corefchainannotation(doc))
-        for corefchain in @iter corefchains
-            @print_string corefchain
         end
     end
 
+    #CorefChain's
+    if in("coref", annArray)
+        println("\nCoref Chains=========")
+        corefchains = values(corefchainannotation(doc))
+        for corefchain in JavaCall.iterator(corefchains)
+            println(to_string(corefchain))
+        end
+    end
 end
