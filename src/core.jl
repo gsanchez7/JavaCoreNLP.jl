@@ -14,10 +14,9 @@ function demo(pipeline::StanfordCoreNLP, text::String)
     #Get annotators used in this pipeline.
     props = get_properties(pipeline)
     annCSVString = get_property(props, "annotators")
-    annArray = convert(Array{String,1}, split(annCSVString, ","))
 
     #Perform annotation.
-    if !isempty(annArray)
+    if !isempty(annCSVString)
         doc = Annotation(text)
         annotate!(pipeline, doc);
     else
@@ -25,14 +24,14 @@ function demo(pipeline::StanfordCoreNLP, text::String)
         return
     end
 
-    if in("ssplit", annArray)
+    if ismatch(r"ssplit", annCSVString)
 
         #Iterate over sentences.
         sents = sentences(doc)
         for sent in JavaCall.iterator(sents)
 
             ##Iterate over tokens.
-            if in("tokenize", annArray)
+            if ismatch(r"tokenize", annCSVString)
                 println("\nTokens=========")
                 tokenlist = tokens(sent)
                 for token in JavaCall.iterator(tokenlist)
@@ -42,25 +41,25 @@ function demo(pipeline::StanfordCoreNLP, text::String)
             end
 
             ##Parse tree.
-            if in("parse", annArray)
+            if ismatch(r"parse", annCSVString)
                 println("\nParse tree=========")
                 parse_tree = convert(JTree, labeledscoredtreenode(sent))
                 println(pennstring(parse_tree))
             end
 
             ##Dependency semantic graphs.
-            if in("depparse", annArray)
+            if ismatch(r"depparse", annCSVString)
                 println("\nDependencies=========")
                 println(to_string(basicdependencies(sent)))
-#                println(to_string(collapseddependencies(sent)))
-#                println(to_string(collapsedccprocesseddependencies(sent)))
-#                println(to_string(basicdependencies(sent)))
-#                println(to_string(collapseddependencies(sent)))
-#                println(to_string(collapsedccprocesseddependencies(sent)))
+                println(to_string(collapseddependencies(sent)))
+                println(to_string(collapsedccprocesseddependencies(sent)))
+                println(to_string(basicdependencies(sent)))
+                println(to_string(collapseddependencies(sent)))
+                println(to_string(collapsedccprocesseddependencies(sent)))
             end
 
             ##Relation triples.
-            if in("openie", annArray)
+            if ismatch(r"openie", annCSVString)
                 println("\nRelations Triples=========")
                 triples = relationtriples(sent)
                 for triple in JavaCall.iterator(triples)
@@ -72,7 +71,7 @@ function demo(pipeline::StanfordCoreNLP, text::String)
             end
 
             ##Mentions
-            if in("mention", annArray)
+            if ismatch(r"mention", annCSVString)
                 println("\nMentions=========")
                 mentions = corefmentionsannotation(sent)
                 for mention in JavaCall.iterator(mentions)
@@ -80,8 +79,8 @@ function demo(pipeline::StanfordCoreNLP, text::String)
                 end
             end
 
-            if in("\nsentiment", annArray)
-                println("Sentiment=========")
+            if ismatch(r"sentiment", annCSVString)
+                println("\nSentiment=========")
                 sentiment = convert(JTree, sentimentannotation(sent))
                 println(pennstring(sentiment))
             end
@@ -89,7 +88,7 @@ function demo(pipeline::StanfordCoreNLP, text::String)
     end
 
     #CorefChain's
-    if in("coref", annArray)
+    if ismatch(r"coref", annCSVString)
         println("\nCoref Chains=========")
         corefchains = values(corefchainannotation(doc))
         for corefchain in JavaCall.iterator(corefchains)
