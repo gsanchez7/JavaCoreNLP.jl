@@ -1,5 +1,7 @@
-mvn = is_windows() ? "mvn.cmd" : "mvn"
-which = is_windows() ? "where" : "which"
+using sys
+
+mvn = sys.is_windows() ? "mvn.cmd" : "mvn"
+which = sys.is_windows() ? "where" : "which"
 
 try
     run(`$which $mvn`)
