@@ -1,5 +1,5 @@
-mvn = Sys.isbsd() ? "mvn.cmd" : "mvn"
-which = Sys.is_bsd() ? "where" : "which"
+mvn = Sys.isunix() ? "mvn.cmd" : "mvn"
+which = Sys.isunix() ? "where" : "which"
 
 try
     run(`$which $mvn`)
