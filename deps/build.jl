@@ -1,5 +1,3 @@
-using Sys
-
 mvn = Sys.is_windows() ? "mvn.cmd" : "mvn"
 which = Sys.is_windows() ? "where" : "which"
 
